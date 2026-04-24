@@ -1,0 +1,43 @@
+{
+  "model_name": "RandomForest",
+  "accuracy": 99.55,
+  "cv_mean": 99.43,
+  "cv_std": 0.54,
+  "feature_cols": [
+    "N",
+    "P",
+    "K",
+    "temperature",
+    "humidity",
+    "ph",
+    "rainfall"
+  ],
+  "class_names": [
+    "apple",
+    "banana",
+    "blackgram",
+    "chickpea",
+    "coconut",
+    "coffee",
+    "cotton",
+    "grapes",
+    "jute",
+    "kidneybeans",
+    "lentil",
+    "maize",
+    "mango",
+    "mothbeans",
+    "mungbean",
+    "muskmelon",
+    "orange",
+    "papaya",
+    "pigeonpeas",
+    "pomegranate",
+    "rice",
+    "watermelon"
+  ],
+  "num_classes": 22,
+  "train_samples": 1760,
+  "test_samples": 440,
+  "dataset": "Crop Recommendation Dataset (Kaggle)"
+}

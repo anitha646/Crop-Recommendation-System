@@ -1,46 +1,414 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-100PSMRS33"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Crop Advisor AI — Smart Farming System</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+:root {
+  --bg:      #f5f7f2;
+  --white:   #ffffff;
+  --border:  #dce8d5;
+  --green:   #1e6b2e;
+  --green2:  #38a349;
+  --greenlt: #e8f5e9;
+  --amber:   #e67e22;
+  --sky:     #0288d1;
+  --text:    #1a2e1a;
+  --muted:   #5a7a5a;
+  --mono:    'JetBrains Mono', monospace;
+  --sans:    'Plus Jakarta Sans', sans-serif;
+  --shadow:  0 4px 20px rgba(30,107,46,0.10);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:100vh;}
+body::before{content:'';position:fixed;inset:0;
+  background:radial-gradient(ellipse at 10% 10%,rgba(56,163,73,.06) 0,transparent 55%),
+             radial-gradient(ellipse at 90% 90%,rgba(30,107,46,.05) 0,transparent 55%);
+  pointer-events:none;z-index:0;}
 
-  gtag('config', 'G-100PSMRS33');
-</script>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>🌾 Smart Crop Recommendation</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+.wrap{max-width:1060px;margin:0 auto;padding:28px 20px;position:relative;z-index:1;}
+
+/* ── Header ── */
+header{
+  background:linear-gradient(135deg,var(--green) 0%,var(--green2) 100%);
+  border-radius:20px;padding:28px 32px;margin-bottom:24px;
+  display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;
+  box-shadow:0 8px 32px rgba(30,107,46,.25);
+  animation:fadeDown .5s ease both;
+}
+.hlogo{display:flex;align-items:center;gap:16px;}
+.hicon{font-size:40px;filter:drop-shadow(0 2px 4px rgba(0,0,0,.2));}
+.htitle h1{color:#fff;font-size:24px;font-weight:800;letter-spacing:-.02em;}
+.htitle p{color:rgba(255,255,255,.75);font-size:12px;font-family:var(--mono);margin-top:2px;}
+.hbadges{display:flex;gap:8px;flex-wrap:wrap;}
+.hbadge{background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.3);
+  color:#fff;font-size:10px;font-family:var(--mono);padding:4px 12px;border-radius:20px;}
+
+/* ── Status row ── */
+.status-row{display:flex;gap:10px;margin-bottom:24px;flex-wrap:wrap;animation:fadeDown .5s .1s ease both;}
+.spill{font-family:var(--mono);font-size:11px;padding:5px 14px;border-radius:20px;
+  display:flex;align-items:center;gap:6px;}
+.spill.ok  {background:var(--greenlt);color:var(--green);border:1px solid rgba(30,107,46,.2);}
+.spill.info{background:#e3f2fd;color:var(--sky);border:1px solid #b3d9f7;}
+.dot{width:7px;height:7px;border-radius:50%;background:currentColor;animation:pulse 2s infinite;}
+
+/* ── Grid ── */
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;animation:fadeUp .5s .2s ease both;}
+@media(max-width:680px){.grid{grid-template-columns:1fr;}}
+
+.card{background:var(--white);border:1px solid var(--border);border-radius:16px;
+  padding:24px;box-shadow:var(--shadow);}
+.card-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;
+  color:var(--muted);margin-bottom:18px;display:flex;align-items:center;gap:8px;}
+
+/* ── Form ── */
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.field label{display:block;font-size:11px;font-weight:600;color:var(--muted);
+  font-family:var(--mono);margin-bottom:5px;text-transform:uppercase;}
+.field input{width:100%;padding:10px 13px;border:1.5px solid var(--border);border-radius:9px;
+  font-family:var(--mono);font-size:13px;color:var(--text);background:var(--bg);
+  transition:border-color .2s,box-shadow .2s;outline:none;}
+.field input:focus{border-color:var(--green2);box-shadow:0 0 0 3px rgba(56,163,73,.12);}
+.field .hint{font-size:10px;color:var(--muted);font-family:var(--mono);margin-top:3px;}
+
+.btn-predict{width:100%;margin-top:16px;padding:14px;
+  background:linear-gradient(135deg,var(--green),var(--green2));
+  color:#fff;border:none;border-radius:11px;font-family:var(--sans);
+  font-size:15px;font-weight:700;cursor:pointer;transition:opacity .2s,transform .1s;}
+.btn-predict:hover{opacity:.9;}
+.btn-predict:active{transform:scale(.98);}
+.btn-predict:disabled{opacity:.55;cursor:not-allowed;}
+
+/* ── Presets ── */
+.presets{margin-bottom:16px;}
+.preset-label{font-size:11px;color:var(--muted);font-family:var(--mono);margin-bottom:8px;}
+.preset-btns{display:flex;gap:8px;flex-wrap:wrap;}
+.preset-btn{font-size:11px;padding:5px 13px;border-radius:20px;cursor:pointer;
+  border:1.5px solid var(--border);background:var(--bg);color:var(--text);
+  font-family:var(--mono);transition:all .15s;}
+.preset-btn:hover{border-color:var(--green2);color:var(--green);background:var(--greenlt);}
+
+/* ── Result ── */
+#result-card{display:none;}
+.crop-hero{text-align:center;padding:20px 0 16px;border-bottom:1px solid var(--border);margin-bottom:16px;}
+.crop-emoji{font-size:52px;margin-bottom:8px;}
+.crop-name{font-size:24px;font-weight:800;color:var(--green);text-transform:capitalize;}
+.crop-conf{font-family:var(--mono);font-size:12px;color:var(--muted);margin-top:4px;}
+.conf-bar{height:8px;background:var(--border);border-radius:4px;overflow:hidden;margin:10px 0;}
+.conf-fill{height:100%;background:linear-gradient(90deg,var(--green),var(--green2));
+  border-radius:4px;width:0%;transition:width 1s ease;}
+
+.result-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:14px;}
+.ritem{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px 12px;}
+.ritem .rl{font-size:9px;color:var(--muted);font-family:var(--mono);text-transform:uppercase;}
+.ritem .rv{font-size:13px;font-weight:700;margin-top:2px;}
+
+.top3{margin-top:12px;}
+.t3label{font-size:10px;color:var(--muted);font-family:var(--mono);margin-bottom:8px;}
+.t3item{display:flex;align-items:center;gap:8px;margin-bottom:7px;font-size:12.5px;}
+.t3name{flex:1;text-transform:capitalize;}
+.t3bar{flex:2;height:5px;background:var(--border);border-radius:3px;overflow:hidden;}
+.t3fill{height:100%;background:var(--green2);border-radius:3px;}
+.t3pct{font-family:var(--mono);font-size:11px;color:var(--muted);width:42px;text-align:right;}
+
+/* ── Advice ── */
+#advice-card{display:none;margin-top:20px;animation:fadeUp .4s ease both;}
+.gemini-tag{display:inline-flex;align-items:center;gap:6px;font-family:var(--mono);
+  font-size:10px;background:#f8f9fa;border:1px solid #dee2e6;color:#5f6368;
+  padding:3px 10px;border-radius:20px;margin-bottom:14px;}
+.advice-body{font-size:13.5px;line-height:1.85;color:var(--text);white-space:pre-wrap;}
+.advice-body strong{color:var(--green);}
+.loading-msg{text-align:center;padding:24px;font-family:var(--mono);font-size:12px;color:var(--muted);}
+.spinner{display:inline-block;width:16px;height:16px;
+  border:2px solid rgba(30,107,46,.2);border-top-color:var(--green);
+  border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;margin-right:6px;}
+
+/* ── History ── */
+#history-card{margin-top:20px;animation:fadeUp .5s .3s ease both;}
+.htable{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:11.5px;}
+.htable th{background:var(--bg);padding:8px 12px;text-align:left;color:var(--muted);
+  border-bottom:1px solid var(--border);font-weight:500;}
+.htable td{padding:9px 12px;border-bottom:1px solid var(--border);}
+.htable tr:last-child td{border-bottom:none;}
+.ctag{display:inline-block;font-size:10px;padding:2px 9px;border-radius:20px;
+  background:var(--greenlt);color:var(--green);border:1px solid rgba(30,107,46,.2);text-transform:capitalize;}
+
+/* ── Footer ── */
+footer{text-align:center;margin-top:36px;padding-top:20px;border-top:1px solid var(--border);
+  font-size:11px;color:var(--muted);font-family:var(--mono);line-height:1.9;}
+
+@keyframes fadeDown{from{opacity:0;transform:translateY(-14px)}to{opacity:1;transform:none}}
+@keyframes fadeUp  {from{opacity:0;transform:translateY(14px)} to{opacity:1;transform:none}}
+@keyframes pulse   {0%,100%{opacity:1}50%{opacity:.35}}
+@keyframes spin    {to{transform:rotate(360deg)}}
+</style>
 </head>
 <body>
-  <div class="container d-flex justify-content-center align-items-center min-vh-100">
-    <div class="card shadow-lg p-4 rounded-4 glass-card">
-      <h2 class="text-center mb-4 fw-bold">🌱 Smart Crop Recommendation</h2>
-      <form id="cropForm">
-        <div class="row g-3">
-          <div class="col-md-4"><input type="number" class="form-control" id="N" placeholder="Nitrogen (N)" required></div>
-          <div class="col-md-4"><input type="number" class="form-control" id="P" placeholder="Phosphorus (P)" required></div>
-          <div class="col-md-4"><input type="number" class="form-control" id="K" placeholder="Potassium (K)" required></div>
-          <div class="col-md-6"><input type="number" class="form-control" id="temperature" placeholder="Temperature (°C)" required></div>
-          <div class="col-md-6"><input type="number" class="form-control" id="humidity" placeholder="Humidity (%)" required></div>
-          <div class="col-md-6"><input type="number" class="form-control" id="pH" placeholder="Soil pH" required></div>
-          <div class="col-md-6"><input type="number" class="form-control" id="rainfall" placeholder="Rainfall (mm)" required></div>
-        </div>
-        <button type="submit" class="btn btn-success w-100 mt-4 fw-bold">🌾 Get Recommendation</button>
-      </form>
-      <div id="loading" class="text-center mt-3 d-none">
-        <div class="spinner-border text-success" role="status"></div>
-        <p>Analyzing...</p>
-      </div>
-      <div id="result" class="alert alert-success mt-3 d-none text-center fw-bold"></div>
+<div class="wrap">
+
+<!-- Header -->
+<header>
+  <div class="hlogo">
+    <div class="hicon">🌾</div>
+    <div class="htitle">
+      <h1>Crop Advisor AI</h1>
+      <p>Smart Crop Recommendation · Random Forest + Gemini LLM · Flask REST API</p>
     </div>
   </div>
+  <div class="hbadges">
+    <span class="hbadge">SDG 2 — Zero Hunger</span>
+    <span class="hbadge">SDG 13 — Climate Action</span>
+    <span class="hbadge">22 Crops · 2200+ Records</span>
+  </div>
+</header>
 
-  <script src="{{ url_for('static', filename='script.js') }}"></script>
+<!-- Status -->
+<div class="status-row">
+  <div class="spill ok"><span class="dot"></span><span id="model-status">Loading model...</span></div>
+  <div class="spill info" id="acc-pill">Accuracy: —</div>
+  <div class="spill info">Flask REST API · Port 5000</div>
+</div>
+
+<!-- Main Grid -->
+<div class="grid">
+
+  <!-- Input Form -->
+  <div class="card">
+    <div class="card-title">🧪 Soil & Weather Parameters</div>
+
+    <div class="presets">
+      <div class="preset-label">Quick Fill — Sample Conditions:</div>
+      <div class="preset-btns">
+        <button class="preset-btn" onclick="fillPreset('rice')">🌾 Rice</button>
+        <button class="preset-btn" onclick="fillPreset('maize')">🌽 Maize</button>
+        <button class="preset-btn" onclick="fillPreset('coffee')">☕ Coffee</button>
+        <button class="preset-btn" onclick="fillPreset('banana')">🍌 Banana</button>
+      </div>
+    </div>
+
+    <div class="form-grid">
+      <div class="field">
+        <label>N — Nitrogen</label>
+        <input type="number" id="N" placeholder="0–140" min="0" max="140" value="90"/>
+        <div class="hint">kg/ha</div>
+      </div>
+      <div class="field">
+        <label>P — Phosphorus</label>
+        <input type="number" id="P" placeholder="5–145" min="5" max="145" value="42"/>
+        <div class="hint">kg/ha</div>
+      </div>
+      <div class="field">
+        <label>K — Potassium</label>
+        <input type="number" id="K" placeholder="5–205" min="5" max="205" value="43"/>
+        <div class="hint">kg/ha</div>
+      </div>
+      <div class="field">
+        <label>Temperature</label>
+        <input type="number" id="temperature" placeholder="8–44" step="0.1" value="20.8"/>
+        <div class="hint">°C</div>
+      </div>
+      <div class="field">
+        <label>Humidity</label>
+        <input type="number" id="humidity" placeholder="14–100" step="0.1" value="82.0"/>
+        <div class="hint">% relative</div>
+      </div>
+      <div class="field">
+        <label>Soil pH</label>
+        <input type="number" id="ph" placeholder="3.5–9.9" step="0.01" value="6.5"/>
+        <div class="hint">3.5 (acid) – 9.9 (alkaline)</div>
+      </div>
+      <div class="field" style="grid-column:1/-1">
+        <label>Rainfall</label>
+        <input type="number" id="rainfall" placeholder="20–300" step="0.1" value="202.9"/>
+        <div class="hint">mm per year</div>
+      </div>
+    </div>
+
+    <button class="btn-predict" id="predict-btn" onclick="runPredict()">
+      🔍 Recommend Best Crop
+    </button>
+  </div>
+
+  <!-- Result -->
+  <div class="card" id="result-card">
+    <div class="card-title">🌱 Recommendation Result</div>
+    <div class="crop-hero">
+      <div class="crop-emoji" id="crop-emoji">🌱</div>
+      <div class="crop-name" id="crop-name">—</div>
+      <div class="crop-conf" id="crop-conf">Confidence: —</div>
+      <div class="conf-bar"><div class="conf-fill" id="conf-fill"></div></div>
+    </div>
+    <div class="result-grid" id="result-grid"></div>
+    <div class="top3" id="top3"></div>
+  </div>
+
+</div>
+
+<!-- Advice Card -->
+<div class="card" id="advice-card">
+  <div class="card-title">🤖 AI Farming Advisory</div>
+  <div class="gemini-tag">✨ Powered by Gemini 1.5 Flash</div>
+  <div class="loading-msg" id="advice-loading" style="display:none">
+    <span class="spinner"></span> Generating personalized advice...
+  </div>
+  <div class="advice-body" id="advice-body"></div>
+</div>
+
+<!-- History -->
+<div class="card" id="history-card">
+  <div class="card-title">📋 Prediction History</div>
+  <div id="history-wrap">
+    <p style="font-size:13px;color:var(--muted);font-family:var(--mono)">No predictions yet.</p>
+  </div>
+</div>
+
+<footer>
+  Crop Advisor AI · 21CSE312P SEAI · SRM Institute of Science and Technology, Tiruchirappalli<br>
+  Random Forest · Flask · Gemini API · Docker · GitHub: anitharajan · SDG 2 &amp; SDG 13
+</footer>
+
+</div>
+<script>
+const PRESETS = {
+  rice:   {N:60, P:55, K:44, temperature:23.0, humidity:82.0, ph:6.4, rainfall:236},
+  maize:  {N:77, P:52, K:17, temperature:22.6, humidity:65.0, ph:6.1, rainfall:67},
+  coffee: {N:101,P:28, K:29, temperature:25.5, humidity:58.9, ph:6.8, rainfall:158},
+  banana: {N:100,P:82, K:50, temperature:27.4, humidity:90.0, ph:6.0, rainfall:100},
+};
+
+function fillPreset(name) {
+  const p = PRESETS[name];
+  if (!p) return;
+  Object.keys(p).forEach(k => { document.getElementById(k).value = p[k]; });
+}
+
+async function runPredict() {
+  const btn = document.getElementById("predict-btn");
+  btn.disabled = true;
+  btn.textContent = "⏳ Analyzing...";
+
+  const payload = {};
+  ["N","P","K","temperature","humidity","ph","rainfall"].forEach(f => {
+    payload[f] = parseFloat(document.getElementById(f).value);
+  });
+
+  try {
+    const res  = await fetch("/predict", {
+      method:"POST", headers:{"Content-Type":"application/json"},
+      body: JSON.stringify(payload)
+    });
+    const data = await res.json();
+    if (data.error) throw new Error(data.error);
+    showResult(data);
+    getAdvice(data.crop, data.inputs);
+    loadHistory();
+  } catch(e) {
+    alert("Error: " + e.message);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "🔍 Recommend Best Crop";
+  }
+}
+
+function showResult(data) {
+  const card = document.getElementById("result-card");
+  card.style.display = "block";
+  card.scrollIntoView({behavior:"smooth", block:"nearest"});
+
+  const EMOJIS = {rice:"🌾",maize:"🌽",coffee:"☕",banana:"🍌",mango:"🥭",
+    grapes:"🍇",apple:"🍎",orange:"🍊",watermelon:"🍉",coconut:"🥥",
+    cotton:"☁️",jute:"🌿",lentil:"🫘",chickpea:"🫘",mungbean:"🫘",
+    blackgram:"🫘",kidneybeans:"🫘",pigeonpeas:"🌱",papaya:"🍈",
+    muskmelon:"🍈",pomegranate:"🍎",mothbeans:"🌱"};
+
+  const emoji = data.info?.emoji || EMOJIS[data.crop.toLowerCase()] || "🌱";
+  document.getElementById("crop-emoji").textContent = emoji;
+  document.getElementById("crop-name").textContent = data.crop;
+  document.getElementById("crop-conf").textContent = `Confidence: ${data.confidence}%`;
+  setTimeout(() => { document.getElementById("conf-fill").style.width = data.confidence + "%"; }, 80);
+
+  const info = data.info || {};
+  document.getElementById("result-grid").innerHTML = `
+    <div class="ritem"><div class="rl">SEASON</div><div class="rv">${info.season||"—"}</div></div>
+    <div class="ritem"><div class="rl">WATER NEED</div><div class="rv">${info.water||"—"}</div></div>
+    <div class="ritem"><div class="rl">SDG GOAL</div><div class="rv">${info.sdg||"SDG 2"}</div></div>`;
+
+  if (data.top3?.length) {
+    const rows = data.top3.map(t => `
+      <div class="t3item">
+        <span class="t3name">${t.crop}</span>
+        <div class="t3bar"><div class="t3fill" style="width:${t.confidence}%"></div></div>
+        <span class="t3pct">${t.confidence}%</span>
+      </div>`).join('');
+    document.getElementById("top3").innerHTML =
+      `<div class="t3label">TOP 3 CROPS</div>${rows}`;
+  }
+}
+
+async function getAdvice(crop, inputs) {
+  const card = document.getElementById("advice-card");
+  const load = document.getElementById("advice-loading");
+  const body = document.getElementById("advice-body");
+  card.style.display = "block";
+  load.style.display = "block";
+  body.innerHTML = "";
+  card.scrollIntoView({behavior:"smooth", block:"nearest"});
+
+  try {
+    const res  = await fetch("/advise", {
+      method:"POST", headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({crop, inputs})
+    });
+    const data = await res.json();
+    load.style.display = "none";
+    let text = data.advice || "No advice available.";
+    text = text.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>");
+    body.innerHTML = text;
+  } catch(e) {
+    load.style.display = "none";
+    body.textContent = "Could not load advice.";
+  }
+}
+
+async function loadHistory() {
+  try {
+    const res  = await fetch("/history");
+    const data = await res.json();
+    const wrap = document.getElementById("history-wrap");
+    if (!data.history?.length) return;
+    const rows = [...data.history].reverse().map(r => `
+      <tr>
+        <td>${(r.timestamp||"—").replace("T"," ").split(".")[0]}</td>
+        <td><span class="ctag">${r.crop||"—"}</span></td>
+        <td style="font-family:var(--mono)">${r.confidence||"—"}%</td>
+        <td style="font-family:var(--mono);font-size:11px">${r.temperature||"—"}°C / ${r.humidity||"—"}%</td>
+      </tr>`).join('');
+    wrap.innerHTML = `
+      <table class="htable">
+        <thead><tr><th>Time</th><th>Crop</th><th>Confidence</th><th>Temp / Humidity</th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table>`;
+  } catch(e) {}
+}
+
+// Health check on load
+window.addEventListener("load", async () => {
+  try {
+    const res  = await fetch("/health");
+    const data = await res.json();
+    const st   = document.getElementById("model-status");
+    const acc  = document.getElementById("acc-pill");
+    if (data.model_loaded) {
+      st.textContent  = `${data.model_name} — Online`;
+      acc.textContent = `Accuracy: ${data.accuracy}%`;
+    } else {
+      st.textContent  = "⚠️ Model not loaded (train on Colab first)";
+    }
+  } catch(e) {}
+  loadHistory();
+});
+</script>
 </body>
 </html>
-

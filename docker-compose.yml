@@ -1,0 +1,14 @@
+version: "3.8"
+services:
+  crop-advisor-ai:
+    build: .
+    image: anitharajan/crop-advisor-ai:v1
+    container_name: crop-advisor-ai
+    ports:
+      - "5000:5000"
+    environment:
+      - GEMINI_API_KEY=${GEMINI_API_KEY:-your_key}
+    volumes:
+      - ./model:/app/model
+      - ./logs:/app/logs
+    restart: unless-stopped
