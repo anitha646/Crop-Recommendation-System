@@ -1,0 +1,21 @@
+name: "crop_model"
+backend: "onnxruntime"
+max_batch_size: 0
+
+input [
+  {
+    name: "float_input"
+    data_type: TYPE_FP32
+    dims: [ -1, 7 ]
+  }
+]
+
+output [
+  {
+    name: "label"
+    data_type: TYPE_INT64
+    dims: [ -1 ]
+  }
+]
+
+instance_group [{ kind: KIND_CPU }]
